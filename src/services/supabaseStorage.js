@@ -87,6 +87,18 @@ class SupabaseStorage {
           .select()
           .single();
 
+        // Если ошибка дублирования (race condition) - пробуем получить пользователя еще раз
+        if (createError && createError.code === '23505') {
+          const { data: existingUser, error: retryError } = await this.supabase
+            .from('users')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+
+          if (retryError) throw retryError;
+          return this.formatUser(existingUser);
+        }
+
         if (createError) throw createError;
 
         return this.formatUser(createdUser);
