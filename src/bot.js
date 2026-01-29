@@ -81,11 +81,11 @@ class TarotBot {
 Задай любой вопрос и получи ответ от Вселенной.
 
 После бесплатного расклада тебе будут доступны:
-🌟 Одна Карта - 50 ⭐
-🔮 Три Карты - 100 ⭐
-💖 Любовный Расклад - 150 ⭐
-✨ Кельтский Крест - 200 ⭐
-🎁 Пакет 5 раскладов - 200 ⭐ (выгода!)
+🌟 Одна Карта - ${spreadTypes.oneCard.price} ⭐
+🔮 Три Карты - ${spreadTypes.threeCards.price} ⭐
+💖 Любовный Расклад - ${spreadTypes.loveReading.price} ⭐
+✨ Кельтский Крест - ${spreadTypes.celticCross.price} ⭐
+🎁 Пакет 5 раскладов - ${spreadTypes.package5.price} ⭐ (выгода!)
 
 Начни с бесплатного расклада прямо сейчас! ✨`;
 
@@ -104,21 +104,21 @@ class TarotBot {
 Я - мистический проводник между мирами, готовый открыть тебе тайны карт Таро.${balanceText}
 ✨ Что я могу для тебя сделать:
 
-🌟 Одна Карта - 50 ⭐
+🌟 Одна Карта - ${spreadTypes.oneCard.price} ⭐
 Быстрый ответ на твой вопрос
 
-🔮 Три Карты - 100 ⭐
+🔮 Три Карты - ${spreadTypes.threeCards.price} ⭐
 Прошлое, настоящее и будущее
 
-💖 Любовный Расклад - 150 ⭐
+💖 Любовный Расклад - ${spreadTypes.loveReading.price} ⭐
 Тайны твоих отношений
 
-✨ Кельтский Крест - 200 ⭐
+✨ Кельтский Крест - ${spreadTypes.celticCross.price} ⭐
 Глубочайший анализ ситуации
 
 ━━━━━━━━━━━━━━━
 🎁 СПЕЦИАЛЬНОЕ ПРЕДЛОЖЕНИЕ 🎁
-Пакет 5 раскладов - 200 ⭐
+Пакет 5 раскладов - ${spreadTypes.package5.price} ⭐
 Выгода 50+ звезд! Используй на любые расклады
 
 Выбери расклад, чтобы начать путешествие...`;
@@ -126,11 +126,11 @@ class TarotBot {
     await ctx.reply(
       welcomeText,
       Markup.inlineKeyboard([
-        [Markup.button.callback('🎁 Пакет 5 раскладов (200 ⭐)', 'spread_package_5')],
-        [Markup.button.callback('🌟 Одна Карта (50 ⭐)', 'spread_one_card')],
-        [Markup.button.callback('🔮 Три Карты (100 ⭐)', 'spread_three_cards')],
-        [Markup.button.callback('💖 Любовный Расклад (150 ⭐)', 'spread_love_reading')],
-        [Markup.button.callback('✨ Кельтский Крест (200 ⭐)', 'spread_celtic_cross')]
+        [Markup.button.callback(`🎁 Пакет 5 раскладов (${spreadTypes.package5.price} ⭐)`, 'spread_package_5')],
+        [Markup.button.callback(`🌟 Одна Карта (${spreadTypes.oneCard.price} ⭐)`, 'spread_one_card')],
+        [Markup.button.callback(`🔮 Три Карты (${spreadTypes.threeCards.price} ⭐)`, 'spread_three_cards')],
+        [Markup.button.callback(`💖 Любовный Расклад (${spreadTypes.loveReading.price} ⭐)`, 'spread_love_reading')],
+        [Markup.button.callback(`✨ Кельтский Крест (${spreadTypes.celticCross.price} ⭐)`, 'spread_celtic_cross')]
       ])
     );
   }
@@ -357,11 +357,11 @@ class TarotBot {
         await ctx.reply(
           `🌙 Спасибо, что доверился картам!\n\n✨ Тебе понравилось? Хочешь узнать больше?\n\nЯ могу открыть тебе ещё больше тайн:`,
           Markup.inlineKeyboard([
-            [Markup.button.callback('🎁 Пакет 5 раскладов (200 ⭐)', 'spread_package_5')],
-            [Markup.button.callback('🌟 Одна Карта (50 ⭐)', 'spread_one_card')],
-            [Markup.button.callback('🔮 Три Карты (100 ⭐)', 'spread_three_cards')],
-            [Markup.button.callback('💖 Любовный Расклад (150 ⭐)', 'spread_love_reading')],
-            [Markup.button.callback('✨ Кельтский Крест (200 ⭐)', 'spread_celtic_cross')]
+            [Markup.button.callback(`🎁 Пакет 5 раскладов (${spreadTypes.package5.price} ⭐)`, 'spread_package_5')],
+            [Markup.button.callback(`🌟 Одна Карта (${spreadTypes.oneCard.price} ⭐)`, 'spread_one_card')],
+            [Markup.button.callback(`🔮 Три Карты (${spreadTypes.threeCards.price} ⭐)`, 'spread_three_cards')],
+            [Markup.button.callback(`💖 Любовный Расклад (${spreadTypes.loveReading.price} ⭐)`, 'spread_love_reading')],
+            [Markup.button.callback(`✨ Кельтский Крест (${spreadTypes.celticCross.price} ⭐)`, 'spread_celtic_cross')]
           ])
         );
       } else {
