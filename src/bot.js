@@ -344,32 +344,67 @@ class TarotBot {
 
       if (error) throw error;
 
+      // Базовые метрики
       const totalUsers = users.length;
       const usedFreeTrial = users.filter(u => u.has_used_free_trial).length;
+      const notUsedFreeTrial = totalUsers - usedFreeTrial;
       const usersWithBalance = users.filter(u => u.readings_balance > 0).length;
       const totalPurchases = users.reduce((sum, u) => sum + u.total_purchases, 0);
       const totalBalance = users.reduce((sum, u) => sum + u.readings_balance, 0);
+
+      // Платящие пользователи
+      const paidUsers = users.filter(u => u.total_purchases > 0);
+      const paidUsersCount = paidUsers.length;
+      const payingRate = totalUsers > 0 ? ((paidUsersCount / totalUsers) * 100).toFixed(1) : 0;
 
       // Конверсия: сколько из тех, кто использовал бесплатный расклад, потом купили
       const conversions = users.filter(u => u.has_used_free_trial && u.total_purchases > 0).length;
       const conversionRate = usedFreeTrial > 0 ? ((conversions / usedFreeTrial) * 100).toFixed(1) : 0;
 
-      const statsText = `📊 СТАТИСТИКА БОТА
+      // Средние покупки на платящего пользователя
+      const avgPurchases = paidUsersCount > 0 ? (totalPurchases / paidUsersCount).toFixed(1) : 0;
 
-👥 Всего пользователей: ${totalUsers}
-🎁 Использовали бесплатный расклад: ${usedFreeTrial}
-💰 Всего покупок: ${totalPurchases}
-💎 Пользователей с балансом: ${usersWithBalance}
-📦 Раскладов на балансах: ${totalBalance}
+      // Расчет дохода (примерно)
+      const estimatedRevenue = totalPurchases * 11; // средний чек ~11 звезд
 
-💵 Конверсия:
-   ${conversions} из ${usedFreeTrial} купили после бесплатного (${conversionRate}%)
+      // Сегменты пользователей
+      const freeTrialOnly = users.filter(u => u.has_used_free_trial && u.total_purchases === 0).length;
+      const paidNeverTrial = users.filter(u => !u.has_used_free_trial && u.total_purchases > 0).length;
+      const noEngagement = users.filter(u => !u.has_used_free_trial && u.total_purchases === 0).length;
 
-📈 Последние регистрации:`;
+      const statsText = `📊 СТАТИСТИКА БОТА (Русский)
+
+👥 БАЗА ПОЛЬЗОВАТЕЛЕЙ:
+   Всего: ${totalUsers}
+   💰 Платящих: ${paidUsersCount} (${payingRate}%)
+   🎁 Использовали триал: ${usedFreeTrial}
+   👻 Не активированы: ${noEngagement}
+
+💵 ДОХОД И ПОКУПКИ:
+   Всего покупок: ${totalPurchases}
+   Примерный доход: ~${estimatedRevenue} ⭐
+   Средний чек/юзер: ${avgPurchases}
+
+🎯 ВОРОНКА КОНВЕРСИИ:
+   Триал использовали: ${usedFreeTrial}
+   → Купили после: ${conversions} (${conversionRate}%)
+   → Остались на бесплатном: ${freeTrialOnly}
+
+   Сразу купили (без триала): ${paidNeverTrial}
+
+💎 АКТИВНЫЕ БАЛАНСЫ:
+   Пользователей с балансом: ${usersWithBalance}
+   Всего раскладов на балансах: ${totalBalance}
+
+📊 СЕГМЕНТЫ ЮЗЕРОВ:
+   🟢 Конверсии: ${conversions} (триал + купили)
+   🟡 Только триал: ${freeTrialOnly} (потенциал)
+   🟠 Купили сразу: ${paidNeverTrial} (пропустили триал)
+   🔴 Не вовлечены: ${noEngagement} (зашли и ушли)`;
 
       await ctx.reply(statsText);
 
-      // Последние 10 пользователей
+      // Последние 10 пользователей с деталями
       const recent = users
         .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
         .slice(0, 10);
@@ -377,17 +412,39 @@ class TarotBot {
       let recentText = '📋 Последние 10 пользователей:\n\n';
       recent.forEach((u, i) => {
         const date = new Date(u.created_at).toLocaleDateString('ru-RU', {
+          month: 'short',
           day: '2-digit',
-          month: '2-digit',
           hour: '2-digit',
           minute: '2-digit'
         });
-        recentText += `${i + 1}. User ${u.user_id}\n`;
+
+        let status = '🔴'; // не вовлечен
+        if (u.total_purchases > 0) status = '🟢'; // платит
+        else if (u.has_used_free_trial) status = '🟡'; // только триал
+
+        recentText += `${status} ${i + 1}. User ${u.user_id}\n`;
         recentText += `   📅 ${date}\n`;
-        recentText += `   💎 Баланс: ${u.readings_balance}, Покупок: ${u.total_purchases}\n\n`;
+        recentText += `   💎 Баланс: ${u.readings_balance} | Покупок: ${u.total_purchases}\n`;
+        recentText += `   🎁 Триал: ${u.has_used_free_trial ? 'Да' : 'Нет'}\n\n`;
       });
 
       await ctx.reply(recentText);
+
+      // Топ покупателей
+      const topSpenders = users
+        .filter(u => u.total_purchases > 0)
+        .sort((a, b) => b.total_purchases - a.total_purchases)
+        .slice(0, 5);
+
+      if (topSpenders.length > 0) {
+        let topText = '🏆 Топ 5 клиентов:\n\n';
+        topSpenders.forEach((u, i) => {
+          topText += `${i + 1}. User ${u.user_id}\n`;
+          topText += `   💰 ${u.total_purchases} покупок\n`;
+          topText += `   💎 Баланс: ${u.readings_balance}\n\n`;
+        });
+        await ctx.reply(topText);
+      }
 
     } catch (error) {
       console.error('Stats error:', error);
