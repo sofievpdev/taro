@@ -1,6 +1,6 @@
 {
   "name": "tarot-telegram-bot",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Telegram bot for Tarot readings with ChatGPT and Telegram Stars payments",
   "main": "index.js",
   "scripts": {
