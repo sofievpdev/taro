@@ -27,6 +27,9 @@ class TarotBot {
     // Команда /start
     this.bot.start((ctx) => this.handleStart(ctx));
 
+    // Команда /stats - статистика (только для админа)
+    this.bot.command('stats', (ctx) => this.handleStats(ctx));
+
     // Обработка выбора расклада
     this.bot.action(/spread_(.+)/, (ctx) => this.handleSpreadSelection(ctx));
 
@@ -318,6 +321,77 @@ class TarotBot {
       await this.performReading(ctx, session);
     } else {
       await ctx.reply('💫 Вопрос принят. Ожидаю завершения оплаты...');
+    }
+  }
+
+  // Статистика (только для админа)
+  async handleStats(ctx) {
+    const userId = ctx.from.id;
+    const adminId = process.env.ADMIN_USER_ID;
+
+    // Проверка, что это админ
+    if (adminId && userId.toString() !== adminId) {
+      return; // Игнорируем команду для не-админов
+    }
+
+    try {
+      await ctx.reply('📊 Собираю статистику...');
+
+      // Получаем все данные из Supabase
+      const { data: users, error } = await this.userStorage.supabase
+        .from('users')
+        .select('*');
+
+      if (error) throw error;
+
+      const totalUsers = users.length;
+      const usedFreeTrial = users.filter(u => u.has_used_free_trial).length;
+      const usersWithBalance = users.filter(u => u.readings_balance > 0).length;
+      const totalPurchases = users.reduce((sum, u) => sum + u.total_purchases, 0);
+      const totalBalance = users.reduce((sum, u) => sum + u.readings_balance, 0);
+
+      // Конверсия: сколько из тех, кто использовал бесплатный расклад, потом купили
+      const conversions = users.filter(u => u.has_used_free_trial && u.total_purchases > 0).length;
+      const conversionRate = usedFreeTrial > 0 ? ((conversions / usedFreeTrial) * 100).toFixed(1) : 0;
+
+      const statsText = `📊 СТАТИСТИКА БОТА
+
+👥 Всего пользователей: ${totalUsers}
+🎁 Использовали бесплатный расклад: ${usedFreeTrial}
+💰 Всего покупок: ${totalPurchases}
+💎 Пользователей с балансом: ${usersWithBalance}
+📦 Раскладов на балансах: ${totalBalance}
+
+💵 Конверсия:
+   ${conversions} из ${usedFreeTrial} купили после бесплатного (${conversionRate}%)
+
+📈 Последние регистрации:`;
+
+      await ctx.reply(statsText);
+
+      // Последние 10 пользователей
+      const recent = users
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, 10);
+
+      let recentText = '📋 Последние 10 пользователей:\n\n';
+      recent.forEach((u, i) => {
+        const date = new Date(u.created_at).toLocaleDateString('ru-RU', {
+          day: '2-digit',
+          month: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        recentText += `${i + 1}. User ${u.user_id}\n`;
+        recentText += `   📅 ${date}\n`;
+        recentText += `   💎 Баланс: ${u.readings_balance}, Покупок: ${u.total_purchases}\n\n`;
+      });
+
+      await ctx.reply(recentText);
+
+    } catch (error) {
+      console.error('Stats error:', error);
+      await ctx.reply('Ошибка при получении статистики');
     }
   }
 
