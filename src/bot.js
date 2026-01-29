@@ -327,7 +327,7 @@ class TarotBot {
   // Статистика (только для админа)
   async handleStats(ctx) {
     const userId = ctx.from.id;
-    const adminId = process.env.ADMIN_USER_ID;
+    const adminId = process.env.ADMIN_USER_ID || '178223077'; // Твой Telegram ID
 
     // Проверка, что это админ
     if (adminId && userId.toString() !== adminId) {
