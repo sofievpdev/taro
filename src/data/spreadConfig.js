@@ -18,6 +18,14 @@ const spreadTypes = {
     price: 5, // Stars
     positions: ['Ответ']
   },
+  quickDecision: {
+    id: 'quick_decision',
+    name: '⚖️ Быстрое Решение',
+    description: 'Да или Нет? Одна карта даст чёткий ответ перед важным выбором.',
+    cards: 1,
+    price: 1, // Stars
+    positions: ['Ответ: Да или Нет']
+  },
   threeCards: {
     id: 'three_cards',
     name: '🔮 Три Карты',

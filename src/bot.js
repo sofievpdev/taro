@@ -120,6 +120,9 @@ class TarotBot {
 5 раскладов на любые вопросы вашей души
 
 ━━━━━━━━━━━━━━━
+⚖️ Быстрое Решение (${spreadTypes.quickDecision.price} ⭐)
+Да или Нет? Одна карта даст чёткий ответ перед важным выбором.
+
 🌟 Одна Карта (${spreadTypes.oneCard.price} ⭐)
 Мгновенная мудрость от Вселенной. Твоя судьба в одной карте.
 
@@ -138,6 +141,7 @@ class TarotBot {
       welcomeText,
       Markup.inlineKeyboard([
         [Markup.button.callback(`🎁 Пакет 5 раскладов (${spreadTypes.package5.price} ⭐)`, 'spread_package_5')],
+        [Markup.button.callback(`⚖️ Быстрое Решение (${spreadTypes.quickDecision.price} ⭐)`, 'spread_quick_decision')],
         [Markup.button.callback(`🌟 Одна Карта (${spreadTypes.oneCard.price} ⭐)`, 'spread_one_card')],
         [Markup.button.callback(`🔮 Три Карты (${spreadTypes.threeCards.price} ⭐)`, 'spread_three_cards')],
         [Markup.button.callback(`💖 Любовный Расклад (${spreadTypes.loveReading.price} ⭐)`, 'spread_love_reading')],
@@ -519,6 +523,7 @@ class TarotBot {
 ✨ Выбери свой следующий шаг:`,
           Markup.inlineKeyboard([
             [Markup.button.callback(`🎁 Пакет 5 раскладов (${spreadTypes.package5.price} ⭐)`, 'spread_package_5')],
+            [Markup.button.callback(`⚖️ Быстрое Решение (${spreadTypes.quickDecision.price} ⭐)`, 'spread_quick_decision')],
             [Markup.button.callback(`🌟 Одна Карта (${spreadTypes.oneCard.price} ⭐)`, 'spread_one_card')],
             [Markup.button.callback(`🔮 Три Карты (${spreadTypes.threeCards.price} ⭐)`, 'spread_three_cards')],
             [Markup.button.callback(`💖 Любовный Расклад (${spreadTypes.loveReading.price} ⭐)`, 'spread_love_reading')],
