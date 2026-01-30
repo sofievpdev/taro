@@ -66,12 +66,19 @@ class TarotBot {
   // Приветствие и главное меню
   async handleStart(ctx) {
     const userId = ctx.from.id;
-    const balance = this.userStorage.getBalance(userId);
-    const canUseFree = this.userStorage.canUseFreeTrial(userId);
+    const balance = await this.userStorage.getBalance(userId);
+    const canUseFree = await this.userStorage.canUseFreeTrial(userId);
+    const freeQuickDecisions = await this.userStorage.getRemainingFreeQuickDecisions(userId);
 
     let balanceText = '';
     if (balance > 0) {
       balanceText = `\n💎 У тебя есть ${balance} ${this.getReadingsWord(balance)} в запасе!\n`;
+    }
+
+    // Добавляем информацию о бесплатных быстрых решениях
+    let quickDecisionText = '';
+    if (freeQuickDecisions > 0) {
+      quickDecisionText = `🎁 У тебя ${freeQuickDecisions} бесплатных "Быстрых Решений"!\n`;
     }
 
     // Если доступен бесплатный расклад - показываем специальное приветствие
@@ -109,7 +116,7 @@ class TarotBot {
     const welcomeText = `🌙 С возвращением, искатель истины! 🌙
 
 Вселенная продолжает говорить через древние карты. Я чувствую, что ты ищешь более глубокие ответы...${balanceText}
-
+${quickDecisionText}
 Многие возвращаются снова, потому что карты не просто предсказывают - они помогают увидеть то, что мы сами уже знаем глубоко внутри, но боимся признать.
 
 ✨ Выбери своё послание от Вселенной:
@@ -120,7 +127,7 @@ class TarotBot {
 5 раскладов на любые вопросы вашей души
 
 ━━━━━━━━━━━━━━━
-⚖️ Быстрое Решение (${spreadTypes.quickDecision.price} ⭐)
+⚖️ Быстрое Решение ${freeQuickDecisions > 0 ? '(БЕСПЛАТНО - ' + freeQuickDecisions + ' раз!)' : '(' + spreadTypes.quickDecision.price + ' ⭐)'}
 Да или Нет? Одна карта даст чёткий ответ перед важным выбором.
 
 🌟 Одна Карта (${spreadTypes.oneCard.price} ⭐)
@@ -141,7 +148,7 @@ class TarotBot {
       welcomeText,
       Markup.inlineKeyboard([
         [Markup.button.callback(`🎁 Пакет 5 раскладов (${spreadTypes.package5.price} ⭐)`, 'spread_package_5')],
-        [Markup.button.callback(`⚖️ Быстрое Решение (${spreadTypes.quickDecision.price} ⭐)`, 'spread_quick_decision')],
+        [Markup.button.callback(freeQuickDecisions > 0 ? `⚖️ Быстрое Решение (БЕСПЛАТНО - ${freeQuickDecisions}!)` : `⚖️ Быстрое Решение (${spreadTypes.quickDecision.price} ⭐)`, 'spread_quick_decision')],
         [Markup.button.callback(`🌟 Одна Карта (${spreadTypes.oneCard.price} ⭐)`, 'spread_one_card')],
         [Markup.button.callback(`🔮 Три Карты (${spreadTypes.threeCards.price} ⭐)`, 'spread_three_cards')],
         [Markup.button.callback(`💖 Любовный Расклад (${spreadTypes.loveReading.price} ⭐)`, 'spread_love_reading')],
@@ -214,6 +221,33 @@ class TarotBot {
 
     const userId = ctx.from.id;
 
+    // Проверка на бесплатные "Быстрые Решения"
+    if (spread.id === 'quick_decision') {
+      const canUseFree = await this.userStorage.canUseFreeQuickDecision(userId);
+      const remaining = await this.userStorage.getRemainingFreeQuickDecisions(userId);
+
+      if (canUseFree) {
+        // Используем бесплатное быстрое решение
+        await this.userStorage.useFreeQuickDecision(userId);
+        const newRemaining = remaining - 1;
+
+        await ctx.reply(`🎁 Отлично! Используем бесплатное "Быстрое Решение"!\n\n✨ У тебя осталось ${newRemaining} бесплатных ${newRemaining === 1 ? 'попытка' : newRemaining < 5 ? 'попытки' : 'попыток'}`);
+
+        // Сохраняем сессию как оплаченную
+        this.userSessions.set(userId, {
+          spreadType: spread,
+          timestamp: Date.now(),
+          paid: true,
+          usedFreeQuickDecision: true
+        });
+
+        await ctx.reply('⚖️ Задай свой вопрос, на который нужен ответ ДА или НЕТ...\n\nНапример: "Стоит ли мне менять работу?" или "Получится ли у меня этот проект?"');
+        return;
+      } else {
+        await ctx.reply(`⚖️ Быстрое Решение\n\nТы уже использовал все 5 бесплатных попыток. Теперь стоимость: ${spread.price} ⭐`);
+      }
+    }
+
     // Если это пакет - просто отправляем инвойс
     if (spread.isPackage) {
       this.userSessions.set(userId, {
@@ -224,7 +258,7 @@ class TarotBot {
     }
 
     // Если обычный расклад - проверяем баланс
-    const balance = this.userStorage.getBalance(userId);
+    const balance = await this.userStorage.getBalance(userId);
 
     if (balance > 0) {
       // Есть баланс - используем бесплатно
