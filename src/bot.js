@@ -3,6 +3,7 @@ const OpenAIService = require('./services/openaiService');
 const TarotService = require('./services/tarotService');
 const SupabaseStorage = require('./services/supabaseStorage');
 const { spreadTypes } = require('./data/spreadConfig');
+const { getCardImageUrlAlt } = require('./utils/cardImages');
 
 class TarotBot {
   constructor(botToken, openaiApiKey) {
@@ -475,9 +476,24 @@ class TarotBot {
       // Вытягиваем карты
       const cards = this.tarotService.drawCards(session.spreadType.cards);
 
-      // Показываем выпавшие карты
-      const spreadText = this.tarotService.formatSpread(cards, session.spreadType);
-      await ctx.reply(spreadText);
+      // Показываем выпавшие карты с изображениями
+      await ctx.reply(`✨ ${session.spreadType.name} ✨\n\nТвои карты раскрываются...`);
+
+      // Отправляем изображение каждой карты
+      for (let i = 0; i < cards.length; i++) {
+        const card = cards[i];
+        const position = session.spreadType.positions[i];
+        const imageUrl = getCardImageUrlAlt(card);
+
+        try {
+          await ctx.replyWithPhoto(imageUrl, {
+            caption: `🃏 ${position}: ${card.name}\n📖 ${card.keywords}`
+          });
+        } catch (error) {
+          // Если изображение не загрузилось, отправляем текстом
+          await ctx.reply(`🃏 ${position}: ${card.name}\n📖 ${card.keywords}`);
+        }
+      }
 
       await ctx.reply('✨ Медитирую над картами...');
 
